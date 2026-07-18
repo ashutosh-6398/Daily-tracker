@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Login Screen Overlay -->
+  <div id="loginScreen" style="display: none; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+    <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 30px; border-color: var(--accent); display: flex; flex-direction: column; gap: 4px;">
+      <h1 id="loginTitle" style="font-size: 26px; margin-bottom: 8px;">Secure Access</h1>
+      <p id="loginSubtitle" class="small" style="margin-bottom: 20px; color: var(--muted);">Please sign in to access your tracking dashboard.</p>
+      
+      <div style="text-align: left; margin-bottom: 12px;">
+        <label for="loginUser" style="margin-top: 0;">Username</label>
+        <input id="loginUser" type="text" placeholder="Enter username" style="margin-top: 4px;" onkeydown="if(event.key === 'Enter') handleAuth()" />
+      </div>
+      
+      <div style="text-align: left; margin-bottom: 20px; position: relative;">
+        <label for="loginPass" style="margin-top: 0;">Password</label>
+        <input id="loginPass" type="password" placeholder="Enter password" style="margin-top: 4px; padding-right: 40px;" onkeydown="if(event.key === 'Enter') handleAuth()" />
+        <span onclick="togglePasswordVisibility()" style="position: absolute; right: 14px; top: 38px; cursor: pointer; color: var(--muted); font-size: 14px; user-select: none;" id="togglePassEye">👁️</span>
+      </div>
+      
+      <button class="primary" onclick="handleAuth()" style="width: 100%; margin-top: 4px; padding: 12px;">Sign In</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Container -->
+  <div id="dashboardApp" class="app" style="display: none;">
+    <div class="header">
+      <div>
+        <h1>Daily Tracker</h1>
+        <p class="sub">Track habits, goals, mood, notes, and tasks in one clean place.</p>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <select id="themeSelector" onchange="changeTheme(this.value)" style="width: auto; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--muted); cursor: pointer;">
+          <option value="cosmic">Cosmic Dark</option>
+          <option value="emerald">Emerald Garden</option>
+          <option value="cyberpunk">Cyberpunk Neon</option>
+        </select>
+        <button class="secondary task-btn" onclick="logout()" style="margin: 0; padding: 8px 16px; border-radius: 999px; font-weight: bold;">🔒 Lock</button>
+        <div class="pill" id="datePill"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Daily Goals</h2>
+        <label>Sleep (hours)</label>
+        <input id="sleep" type="number" step="0.1" value="8" min="0" />
+        <label>Exercise (minutes)</label>
+        <input id="exercise" type="number" value="60" min="0" />
+        <label>Water (liters)</label>
+        <input id="water" type="number" step="0.1" value="3" min="0" />
+        <label>Screen Time (hours)</label>
+        <input id="screen" type="number" step="0.1" value="6" min="0" />
+        <button class="primary" onclick="saveGoals()">Save Goals</button>
+      </div>
+
+      <div class="card">
+        <h2>Today’s Progress</h2>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Overall</span><span id="overallText">0%</span></div>
+          <div class="progress"><div class="bar alt" id="overallBar"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Sleep</span><span id="sleepText">0%</span></div>
+          <div class="progress"><div class="bar" id="sleepBar"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Exercise</span><span id="exerciseText">0%</span></div>
+          <div class="progress"><div class="bar warn" id="exerciseBar"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Water</span><span id="waterText">0%</span></div>
+          <div class="progress"><div class="bar" id="waterBar"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Screen Time</span><span id="screenText">0%</span></div>
+          <div class="progress"><div class="bar warn" id="screenBar"></div></div>
+        </div>
+        <div id="customProgressBars"></div>
+      </div>
+
+      <div class="card">
+        <h2>Log Today</h2>
+        <label>Sleep (hours)</label>
+        <input id="logSleep" type="number" step="0.1" min="0" />
+        <label>Exercise (minutes)</label>
+        <input id="logExercise" type="number" min="0" />
+        <label>Water (liters)</label>
+        <input id="logWater" type="number" step="0.1" min="0" />
+        <label>Screen Time (hours)</label>
+        <input id="logScreen" type="number" step="0.1" min="0" />
+        <div id="customLogInputs"></div>
+        <label>Mood</label>
+        <select id="mood">
+          <option>Great</option>
+          <option>Good</option>
+          <option>Okay</option>
+          <option>Tired</option>
+          <option>Stressed</option>
+        </select>
+        <button class="primary" onclick="saveEntry()">Save Entry</button>
+      </div>
+
+      <div class="card">
+        <h2>Notes</h2>
+        <textarea id="notes" placeholder="Write reflections, wins, or reminders..."></textarea>
+        <button class="primary" onclick="saveNotes()">Save Notes</button>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <h2 style="margin: 0;">Focus Timer</h2>
+          <button onclick="togglePomoSettings()" class="secondary task-btn" style="margin: 0; padding: 4px 8px; font-size: 12px;">⚙️ Settings</button>
+        </div>
+        
+        <!-- Timer Settings (Hidden by default) -->
+        <div id="pomoSettings" style="display: none; flex-direction: column; gap: 10px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid var(--line); margin-bottom: 12px;">
+          <div class="row">
+            <div>
+              <label style="margin: 0 0 4px 0; font-size: 11px;">Work (m)</label>
+              <input id="pomoWorkInput" type="number" min="1" value="25" style="padding: 6px 10px; font-size: 12px;" />
+            </div>
+            <div>
+              <label style="margin: 0 0 4px 0; font-size: 11px;">Short (m)</label>
+              <input id="pomoShortInput" type="number" min="1" value="5" style="padding: 6px 10px; font-size: 12px;" />
+            </div>
+            <div>
+              <label style="margin: 0 0 4px 0; font-size: 11px;">Long (m)</label>
+              <input id="pomoLongInput" type="number" min="1" value="15" style="padding: 6px 10px; font-size: 12px;" />
+            </div>
+          </div>
+          <button class="primary" onclick="savePomoSettings()" style="margin-top: 4px; padding: 8px; font-size: 12px; width: 100%;">Save Durations</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
+            <button id="pomoWorkBtn" class="secondary task-btn" onclick="setPomoMode('work')" style="margin: 0; font-size: 11px; padding: 6px 12px; background: rgba(56,189,248,0.1); border-color: var(--accent); color: var(--accent);">Work</button>
+            <button id="pomoShortBtn" class="secondary task-btn" onclick="setPomoMode('short')" style="margin: 0; font-size: 11px; padding: 6px 12px;">Short Break</button>
+            <button id="pomoLongBtn" class="secondary task-btn" onclick="setPomoMode('long')" style="margin: 0; font-size: 11px; padding: 6px 12px;">Long Break</button>
+          </div>
+          
+          <div style="font-size: 42px; font-weight: 800; font-family: monospace; letter-spacing: 2px; color: var(--text); text-shadow: 0 0 10px rgba(255,255,255,0.05); margin: 10px 0 5px;" id="pomoTime">25:00</div>
+          <div style="font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase;" id="pomoLabel">Work Session</div>
+          
+          <div style="display: flex; gap: 12px; width: 100%;">
+            <button id="pomoStartBtn" class="primary" onclick="togglePomo()" style="margin: 0; flex: 2; padding: 10px 14px;">Start</button>
+            <button class="secondary" onclick="resetPomo()" style="margin: 0; flex: 1; padding: 10px 14px;">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Mood Distribution</h2>
+        <div id="moodChartDisplay"></div>
+      </div>
+
+      <div class="card summary">
+        <h2>Today’s Log</h2>
+        <div id="summary" class="small">No entry yet.</div>
+      </div>
+
+      <div class="card">
+        <h2>Manage Goals</h2>
+        <div id="customGoalsList" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;"></div>
+        
+        <label style="margin-top: 14px;">Goal Name</label>
+        <input id="newGoalName" placeholder="e.g. Reading, Meditation..." style="margin-bottom: 6px;" />
+        <div class="row">
+          <div>
+            <label>Target</label>
+            <input id="newGoalTarget" type="number" value="30" min="0" />
+          </div>
+          <div>
+            <label>Unit</label>
+            <input id="newGoalUnit" placeholder="e.g. mins, pages..." />
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; margin: 12px 0 6px;">
+          <input id="newGoalLimit" type="checkbox" style="width: auto; margin: 0; cursor: pointer;" />
+          <label for="newGoalLimit" style="margin: 0; display: inline; cursor: pointer; font-size: 13px;">This is a limit (less is better)</label>
+        </div>
+        <button class="primary" onclick="addCustomGoal()" style="margin-top: 8px; width: 100%;">Add Custom Goal</button>
+      </div>
+
+      <div class="card">
+        <h2>Tasks</h2>
+        <input id="taskInput" placeholder="Add a task..." onkeydown="if(event.key === 'Enter') addTask()" />
+        <button class="primary" onclick="addTask()">Add Task</button>
+        <ul id="taskList"></ul>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="margin: 0; font-size: 18px;">Calendar</h2>
+          <div style="display: flex; gap: 8px;">
+            <button class="secondary task-btn" onclick="prevMonth()" style="margin: 0; padding: 4px 8px;">&lt;</button>
+            <button class="secondary task-btn" onclick="nextMonth()" style="margin: 0; padding: 4px 8px;">&gt;</button>
+          </div>
+        </div>
+        <div id="monthYearLabel" style="font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 10px; color: var(--accent);"></div>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 8px;">
+          <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+        </div>
+        <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;"></div>
+        
+        <div id="calendarDetails" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); display: none;">
+          <h3 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent);">Day Details</h3>
+          <div id="calendarDetailsContent" class="small"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Data Management</h2>
+        <p class="small" style="margin-bottom: 16px;">Backup your tracking history to a JSON file or restore it from a backup.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="primary" onclick="exportData()" style="margin-top: 0; flex: 1; min-width: 100px;">Export JSON</button>
+          <button class="secondary" onclick="document.getElementById('importFile').click()" style="margin-top: 0; flex: 1; min-width: 100px;">Import JSON</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none;" />
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2>Achievements & Streaks</h2>
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 14px;">
+          <div id="streakDisplay" style="text-align: center; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);"></div>
+          <div id="badgesDisplay" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;"></div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2>Weekly Trends (Last 7 Days)</h2>
+        <div class="trends-grid" style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
+          <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--muted); font-weight: 600;">Sleep (hours)</h3>
+            <div id="sleepChart"></div>
+          </div>
+          <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--muted); font-weight: 600;">Exercise (minutes)</h3>
+            <div id="exerciseChart"></div>
+          </div>
+          <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+            <h3 style="margin: 0 0 10px 0; font-size: 14px; color: var(--muted); font-weight: 600;">Water Intake (Liters)</h3>
+            <div id="waterChart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
