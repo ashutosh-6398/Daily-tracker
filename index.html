@@ -3,19 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daily Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
+  <!-- Animated Ambient Orbs Background -->
+  <div class="ambient-glow-container" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <!-- Twinkling Starfield -->
+  <div id="skyStarfield" aria-hidden="true"></div>
+
   <!-- Login Screen Overlay -->
-  <div id="loginScreen" style="display: none; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+  <div id="loginScreen" style="display: none; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; position: relative; z-index: 1;">
     <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 30px; border-color: var(--accent); display: flex; flex-direction: column; gap: 4px;">
+      <img src="logo.jpg" alt="Daily Tracker Logo" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px auto; box-shadow: 0 0 20px rgba(56, 189, 248, 0.35); border: 1.5px solid var(--accent); object-fit: cover;" />
       <h1 id="loginTitle" style="font-size: 26px; margin-bottom: 8px;">Secure Access</h1>
-      <p id="loginSubtitle" class="small" style="margin-bottom: 20px; color: var(--muted);">Please sign in to access your tracking dashboard.</p>
+      <p id="loginSubtitle" class="small" style="margin-bottom: 16px; color: var(--muted);">Please sign in to access your tracking dashboard.</p>
       
+      <!-- Google / Gmail OAuth Sign-In Button -->
+      <div style="margin-bottom: 12px;">
+        <button class="secondary task-btn" onclick="handleGooglePrompt()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); color: #ffffff; border-radius: 12px; font-weight: 600; font-size: 13px;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
+            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+            <path fill="#FBBC05" d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.1-2 .4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"/>
+            <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"/>
+          </svg>
+          <span>Continue with Google / Gmail</span>
+        </button>
+      </div>
+
+      <div style="display: flex; align-items: center; margin: 8px 0 16px 0; color: var(--muted); font-size: 11px;">
+        <div style="flex: 1; height: 1px; background: var(--line);"></div>
+        <span style="padding: 0 10px; font-weight: 600;">OR</span>
+        <div style="flex: 1; height: 1px; background: var(--line);"></div>
+      </div>
+
       <div style="text-align: left; margin-bottom: 12px;">
         <label for="loginUser" style="margin-top: 0;">Username</label>
         <input id="loginUser" type="text" placeholder="Enter username" style="margin-top: 4px;" onkeydown="if(event.key === 'Enter') handleAuth()" />
+      </div>
+
+      <!-- Email Field (Only visible on Create Account) -->
+      <div id="loginEmailContainer" style="text-align: left; margin-bottom: 12px; display: none;">
+        <label for="loginEmail" style="margin-top: 0;">Email</label>
+        <input id="loginEmail" type="email" placeholder="Enter email" style="margin-top: 4px;" onkeydown="if(event.key === 'Enter') handleAuth()" />
       </div>
       
       <div style="text-align: left; margin-bottom: 20px; position: relative;">
@@ -25,15 +64,24 @@
       </div>
       
       <button class="primary" onclick="handleAuth()" style="width: 100%; margin-top: 4px; padding: 12px;">Sign In</button>
+
+      <!-- Auth Mode Toggle Link -->
+      <div id="authToggleContainer" style="margin-top: 16px; font-size: 13px; text-align: center;">
+        <span id="authToggleText" style="color: var(--muted);">New to Daily Tracker? </span>
+        <a id="authToggleLink" href="#" onclick="toggleAuthMode(event)" style="color: var(--accent); text-decoration: none; font-weight: bold;">Create an account</a>
+      </div>
     </div>
   </div>
 
   <!-- Dashboard Container -->
   <div id="dashboardApp" class="app" style="display: none;">
     <div class="header">
-      <div>
-        <h1>Daily Tracker</h1>
-        <p class="sub">Track habits, goals, mood, notes, and tasks in one clean place.</p>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="logo.jpg" alt="Daily Tracker Logo" style="width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.25); object-fit: cover;" />
+        <div>
+          <h1 style="margin: 0; font-size: 24px; line-height: 1.2;">Daily Tracker</h1>
+          <p class="sub" style="margin: 2px 0 0 0;">Track habits, goals, mood, notes, and tasks in one clean place.</p>
+        </div>
       </div>
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
         <select id="themeSelector" onchange="changeTheme(this.value)" style="width: auto; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--muted); cursor: pointer;">
@@ -41,12 +89,25 @@
           <option value="emerald">Emerald Garden</option>
           <option value="cyberpunk">Cyberpunk Neon</option>
         </select>
+        <button class="secondary task-btn" onclick="openAccountModal()" style="margin: 0; padding: 8px 16px; border-radius: 999px; font-weight: bold; border-color: var(--accent); color: var(--accent);">👤 Account</button>
         <button class="secondary task-btn" onclick="logout()" style="margin: 0; padding: 8px 16px; border-radius: 999px; font-weight: bold;">🔒 Lock</button>
+        <div class="pill" id="cloudStatusPill" style="display: flex; align-items: center; gap: 6px; border-color: rgba(56, 189, 248, 0.3); color: var(--accent); font-size: 11px;">📱 Local</div>
+        <div class="pill" id="skyStatusPill" style="display: flex; align-items: center; gap: 6px; border-color: rgba(255,255,255,0.15);"></div>
         <div class="pill" id="datePill"></div>
       </div>
     </div>
 
     <div class="grid">
+      <!-- Heuristic Health Coach Card -->
+      <div class="card" id="coachPanelCard" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(56, 189, 248, 0.04) 0%, rgba(17, 24, 39, 0.88) 100%); border-color: rgba(56, 189, 248, 0.15); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+        <h2 style="margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+          <span>🧠 Wellness Heuristic Coach</span>
+        </h2>
+        <div id="coachInsightsWrapper" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 8px;">
+          <!-- Generated insights go here -->
+        </div>
+      </div>
+
       <div class="card">
         <h2>Daily Goals</h2>
         <label>Sleep (hours)</label>
@@ -116,7 +177,11 @@
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <h2 style="margin: 0;">Focus Timer</h2>
-          <button onclick="togglePomoSettings()" class="secondary task-btn" style="margin: 0; padding: 4px 8px; font-size: 12px;">⚙️ Settings</button>
+          <div style="display: flex; gap: 6px;">
+            <button onclick="toggleLoungeMode()" class="secondary task-btn" style="margin: 0; padding: 4px 8px; font-size: 12px; border-color: #a78bfa; color: #a78bfa;">📺 Lounge</button>
+            <button onclick="toggleBreathingGuide()" class="secondary task-btn" style="margin: 0; padding: 4px 8px; font-size: 12px; border-color: var(--accent); color: var(--accent);">🧘 Breath</button>
+            <button onclick="togglePomoSettings()" class="secondary task-btn" style="margin: 0; padding: 4px 8px; font-size: 12px;">⚙️ Settings</button>
+          </div>
         </div>
         
         <!-- Timer Settings (Hidden by default) -->
@@ -135,10 +200,20 @@
               <input id="pomoLongInput" type="number" min="1" value="15" style="padding: 6px 10px; font-size: 12px;" />
             </div>
           </div>
-          <button class="primary" onclick="savePomoSettings()" style="margin-top: 4px; padding: 8px; font-size: 12px; width: 100%;">Save Durations</button>
+          <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+            <label style="margin: 0; font-size: 11px;">Alarm Sound</label>
+            <select id="pomoAlarmSelect" style="padding: 8px 12px; font-size: 12px; border-radius: 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--line); color: var(--text); cursor: pointer; width: 100%;">
+              <option value="chime">Gentle Chime 🔔</option>
+              <option value="digital">Digital Beep 🚨</option>
+              <option value="retro">Retro Bell ⏰</option>
+              <option value="melody">Sweet Melody 🎵</option>
+              <option value="silent">Silent 🔇</option>
+            </select>
+          </div>
+          <button class="primary" onclick="savePomoSettings()" style="margin-top: 4px; padding: 8px; font-size: 12px; width: 100%;">Save Settings</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
+        <div id="pomoTimerContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
           <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
             <button id="pomoWorkBtn" class="secondary task-btn" onclick="setPomoMode('work')" style="margin: 0; font-size: 11px; padding: 6px 12px; background: rgba(56,189,248,0.1); border-color: var(--accent); color: var(--accent);">Work</button>
             <button id="pomoShortBtn" class="secondary task-btn" onclick="setPomoMode('short')" style="margin: 0; font-size: 11px; padding: 6px 12px;">Short Break</button>
@@ -148,9 +223,74 @@
           <div style="font-size: 42px; font-weight: 800; font-family: monospace; letter-spacing: 2px; color: var(--text); text-shadow: 0 0 10px rgba(255,255,255,0.05); margin: 10px 0 5px;" id="pomoTime">25:00</div>
           <div style="font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase;" id="pomoLabel">Work Session</div>
           
+          <!-- Visualizer Bars -->
+          <div id="pomoVisualizer" style="display: none; align-items: center; justify-content: center; gap: 3px; height: 16px; margin: 4px 0;">
+            <div class="vis-bar bar1"></div>
+            <div class="vis-bar bar2"></div>
+            <div class="vis-bar bar3"></div>
+            <div class="vis-bar bar4"></div>
+            <div class="vis-bar bar5"></div>
+          </div>
+          
           <div style="display: flex; gap: 12px; width: 100%;">
             <button id="pomoStartBtn" class="primary" onclick="togglePomo()" style="margin: 0; flex: 2; padding: 10px 14px;">Start</button>
             <button class="secondary" onclick="resetPomo()" style="margin: 0; flex: 1; padding: 10px 14px;">Reset</button>
+          </div>
+
+          <!-- Ambient Sound Control -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 12px; color: var(--muted); font-weight: 600;">🎵 Ambient:</span>
+              <select id="pomoAmbientSelect" onchange="changeAmbientSound(this.value)" style="padding: 4px 8px; font-size: 11px; border-radius: 6px; background: rgba(0,0,0,0.2); border: 1px solid var(--line); color: var(--text); cursor: pointer; max-width: 120px;">
+                <option value="none">None 🔇</option>
+                <option value="rain">Soothing Rain 🌧️</option>
+                <option value="wind">Forest & Birds 🍃</option>
+                <option value="drone">Study Calm 📚</option>
+              </select>
+            </div>
+            <!-- Volume Control -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button id="pomoVolumeBtn" onclick="toggleAmbientMute()" style="background: none; border: none; padding: 2px 4px; cursor: pointer; font-size: 14px; margin: 0; line-height: 1;" title="Click to Mute / Unmute">🔊</button>
+              <input id="pomoAmbientVolume" type="range" min="0" max="1" step="0.01" value="0.5" oninput="changeAmbientVolume(this.value)" style="width: 110px; height: 6px; cursor: pointer; accent-color: var(--accent); border-radius: 4px;" />
+              <span id="pomoVolumeText" style="font-size: 11px; color: var(--muted); font-weight: 600; min-width: 32px; text-align: right;">50%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guided Box-Breathing Visualizer -->
+        <div id="breathingGuide" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 10px 0;">
+          <div style="font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase;" id="breathGuideTitle">Box Breathing Guide</div>
+          
+          <div style="text-align: left; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label for="breathPatternSelect" style="margin: 0; font-size: 11px; font-weight: 600; white-space: nowrap; color: var(--muted);">Pattern:</label>
+              <select id="breathPatternSelect" onchange="changeBreathPattern(this.value)" style="flex: 1; padding: 6px 10px; font-size: 11px; border-radius: 6px; background: rgba(0,0,0,0.2); border: 1px solid var(--line); color: var(--text); cursor: pointer;">
+                <option value="box">Box Breathing (4-4-4-4)</option>
+                <option value="relax">4-7-8 Deep Sleep (4-7-8)</option>
+                <option value="coherent">Coherent Calm (5-0-5-0)</option>
+              </select>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="margin: 0; font-size: 11px; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <input type="checkbox" id="breathAudioToggle" checked style="cursor: pointer; margin: 0;" /> 🔊 Synth Audio Guide
+              </label>
+            </div>
+          </div>
+
+          <div style="position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; margin: 10px 0;">
+            <div id="breathRing"></div>
+            <div class="breath-ripple" id="breathRipple1"></div>
+            <div class="breath-ripple" id="breathRipple2"></div>
+            <div id="breathBubble" style="width: 60px; height: 60px; background: radial-gradient(circle, var(--accent) 0%, rgba(56, 189, 248, 0.4) 100%); box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);">
+              <span id="breathSecondText" style="font-size: 20px; font-weight: 800; color: #fff; font-family: monospace;">4</span>
+            </div>
+          </div>
+          
+          <div style="font-size: 18px; font-weight: 700; color: var(--text); height: 24px; text-align: center; margin-top: -5px;" id="breathInstruction">Get Ready</div>
+          
+          <div style="display: flex; gap: 10px; width: 100%; margin-top: 5px;">
+            <button id="breathActionBtn" class="primary" onclick="toggleBreathingGuideActive()" style="margin: 0; flex: 2; padding: 10px 14px; font-weight: bold; border-radius: 999px;">Start Guide</button>
+            <button class="secondary" onclick="exitBreathingGuide()" style="margin: 0; flex: 1; padding: 10px 14px; border-radius: 999px;">Exit</button>
           </div>
         </div>
       </div>
@@ -188,11 +328,47 @@
         <button class="primary" onclick="addCustomGoal()" style="margin-top: 8px; width: 100%;">Add Custom Goal</button>
       </div>
 
-      <div class="card">
-        <h2>Tasks</h2>
-        <input id="taskInput" placeholder="Add a task..." onkeydown="if(event.key === 'Enter') addTask()" />
-        <button class="primary" onclick="addTask()">Add Task</button>
-        <ul id="taskList"></ul>
+      <div class="card" style="grid-column: 1 / -1;">
+        <h2>Tasks (Kanban Board)</h2>
+        
+        <!-- Task Input Controls -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+          <input id="taskInput" placeholder="Add a new task..." style="flex: 2; min-width: 200px; margin: 0; padding: 11px 14px;" onkeydown="if(event.key === 'Enter') addTask()" />
+          
+          <select id="taskCategorySelect" style="flex: 1; min-width: 120px; padding: 11px 14px; border-radius: 14px; background: rgba(255,255,255,0.06); border: 1px solid var(--line); color: var(--text); cursor: pointer; outline: none; transition: border-color 0.2s;">
+            <option value="Work">Work 💼</option>
+            <option value="Health">Health 🏃‍♂️</option>
+            <option value="Personal">Personal 👤</option>
+            <option value="Other">Other 🏷️</option>
+          </select>
+          
+          <button class="primary" onclick="addTask()" style="margin: 0; padding: 11px 24px;">Add Task</button>
+        </div>
+
+        <!-- Kanban Columns -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+          <!-- To Do Column -->
+          <div class="kanban-col">
+            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; gap: 6px; font-weight: 700;">
+              <span>To Do</span>
+            </h3>
+            <div class="kanban-list" id="todoList" ondragover="allowDrop(event)" ondrop="drop(event, 'todo')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" style="min-height: 180px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1.5px dashed var(--line); padding: 12px; display: flex; flex-direction: column; gap: 10px;"></div>
+          </div>
+          <!-- In Progress Column -->
+          <div class="kanban-col">
+            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: var(--accent-2); display: flex; align-items: center; gap: 6px; font-weight: 700;">
+              <span>In Progress</span>
+            </h3>
+            <div class="kanban-list" id="progressList" ondragover="allowDrop(event)" ondrop="drop(event, 'progress')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" style="min-height: 180px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1.5px dashed var(--line); padding: 12px; display: flex; flex-direction: column; gap: 10px;"></div>
+          </div>
+          <!-- Completed Column -->
+          <div class="kanban-col">
+            <h3 style="font-size: 15px; margin: 0 0 10px 0; color: var(--muted); display: flex; align-items: center; gap: 6px; font-weight: 700;">
+              <span>Completed</span>
+            </h3>
+            <div class="kanban-list" id="doneList" ondragover="allowDrop(event)" ondrop="drop(event, 'done')" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" style="min-height: 180px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1.5px dashed var(--line); padding: 12px; display: flex; flex-direction: column; gap: 10px;"></div>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -225,11 +401,93 @@
         <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none;" />
       </div>
 
+      <!-- Dopamine Detox & Doomscroll Shield Card -->
+      <div class="card" id="detoxCard" style="border-color: rgba(245, 158, 11, 0.3); background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(17, 24, 39, 0.75) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>⚡ Dopamine Detox Shield</span>
+          </h2>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button onclick="toggleDetoxSettings()" class="secondary task-btn" style="margin: 0; padding: 4px 8px; font-size: 11px; border-color: rgba(245,158,11,0.4); color: #f59e0b;">⚙️ Custom</button>
+            <span id="detoxStatusBadge" class="pill" style="font-size: 11px; padding: 4px 10px; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Ready</span>
+          </div>
+        </div>
+
+        <!-- Custom Detox Settings Panel (Hidden by default) -->
+        <div id="detoxSettings" style="display: none; flex-direction: column; gap: 10px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.25); margin-bottom: 12px;">
+          <label style="margin: 0; font-size: 11px; color: var(--muted); font-weight: 600;">Choose Sprint Duration (Minutes):</label>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="secondary task-btn" onclick="setDetoxDuration(15)" style="margin: 0; flex: 1; padding: 6px; font-size: 11px;">15m</button>
+            <button class="secondary task-btn" onclick="setDetoxDuration(30)" style="margin: 0; flex: 1; padding: 6px; font-size: 11px;">30m</button>
+            <button class="secondary task-btn" onclick="setDetoxDuration(45)" style="margin: 0; flex: 1; padding: 6px; font-size: 11px;">45m</button>
+            <button class="secondary task-btn" onclick="setDetoxDuration(60)" style="margin: 0; flex: 1; padding: 6px; font-size: 11px;">60m</button>
+            <button class="secondary task-btn" onclick="setDetoxDuration(90)" style="margin: 0; flex: 1; padding: 6px; font-size: 11px;">90m</button>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+            <input id="customDetoxMinutes" type="number" min="1" max="180" placeholder="Custom mins..." style="padding: 6px 10px; font-size: 11px;" />
+            <button class="primary" onclick="applyCustomDetoxMinutes()" style="margin: 0; padding: 6px 14px; font-size: 11px; white-space: nowrap;">Set Custom</button>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 6px 0;">
+          <div id="detoxTimerDisplay" style="font-size: 44px; font-weight: 800; font-family: 'Outfit', monospace; color: #f59e0b; text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); letter-spacing: 2px;">45:00</div>
+          <p id="detoxTipText" style="font-size: 12px; color: var(--muted); margin: 6px 0 14px 0; min-height: 36px; line-height: 1.45;">"Put your phone face down in another room. Break the instant gratification loop."</p>
+
+          <!-- Live Stats Ticker -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+            <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px;">
+              <div style="font-size: 11px; color: var(--muted); font-weight: 600;">📱 Time Saved</div>
+              <div id="detoxTimeSavedText" style="font-size: 16px; font-weight: 700; color: var(--accent-2); margin-top: 2px;">0 mins</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px;">
+              <div style="font-size: 11px; color: var(--muted); font-weight: 600;">🧠 Reset Points</div>
+              <div id="detoxPointsText" style="font-size: 16px; font-weight: 700; color: #a78bfa; margin-top: 2px;">+0 pts</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button id="detoxToggleBtn" class="primary" onclick="toggleDetoxSprint()" style="margin: 0; flex: 2; padding: 10px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #ffffff;">Activate Shield ⚡</button>
+            <button class="secondary" onclick="toggleDetoxLockout()" style="margin: 0; flex: 1; padding: 10px; border-color: rgba(245, 158, 11, 0.3);">Lockout 🔒</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card" style="grid-column: 1 / -1;">
         <h2>Achievements & Streaks</h2>
         <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 14px;">
           <div id="streakDisplay" style="text-align: center; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);"></div>
           <div id="badgesDisplay" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;"></div>
+        </div>
+      </div>
+
+      <!-- Year in Pixels (GitHub Style Contribution Grid) -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <h2 style="margin: 0;">Year in Pixels</h2>
+          <div style="display: flex; gap: 8px; align-items: center; font-size: 11px; color: var(--muted);">
+            <span>Less</span>
+            <div style="width: 10px; height: 10px; background: var(--pixel-0); border-radius: 2px;"></div>
+            <div style="width: 10px; height: 10px; background: var(--pixel-1); border-radius: 2px;"></div>
+            <div style="width: 10px; height: 10px; background: var(--pixel-2); border-radius: 2px;"></div>
+            <div style="width: 10px; height: 10px; background: var(--pixel-3); border-radius: 2px;"></div>
+            <div style="width: 10px; height: 10px; background: var(--pixel-4); border-radius: 2px;"></div>
+            <span>More</span>
+          </div>
+        </div>
+        <div style="overflow-x: auto; padding-bottom: 6px; position: relative;">
+          <div style="display: flex; gap: 8px; min-width: 720px; align-items: flex-start; justify-content: center; padding: 10px 0;">
+            <!-- Weekday Labels -->
+            <div style="display: grid; grid-template-rows: repeat(7, 10px); gap: 3px; font-size: 8px; color: var(--muted); line-height: 10px; padding-top: 18px; width: 16px; font-weight: 600;">
+              <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            </div>
+            <!-- Grid Container with Months & Pixels -->
+            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+              <!-- Month labels row -->
+              <div id="monthLabelRow" style="display: flex; font-size: 9px; color: var(--muted); position: relative; height: 14px; width: 100%;"></div>
+              <!-- Day cells grid -->
+              <div id="pixelGrid" style="display: grid; grid-template-rows: repeat(7, 10px); grid-auto-flow: column; gap: 3px;"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -250,6 +508,165 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Pomodoro Completion Modal -->
+  <div id="pomoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.3s ease;">
+    <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 32px 24px; border: 1.5px solid var(--accent); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 0 40px rgba(56, 189, 248, 0.25); border-radius: var(--radius); background: rgba(17, 24, 39, 0.95);">
+      <div style="font-size: 54px; animation: bounce 2s infinite;" id="pomoModalIcon">🔔</div>
+      <h2 id="pomoModalTitle" style="font-size: 24px; margin: 0; color: var(--accent); letter-spacing: -0.02em;">Session Completed!</h2>
+      <p id="pomoModalText" style="margin: 0; color: var(--text); font-size: 15px; line-height: 1.5;">Great job! Time to take a break.</p>
+      <div style="display: flex; gap: 10px; margin-top: 10px; width: 100%;">
+        <button class="primary" onclick="dismissPomoModal(); startBreathingFromPomo();" style="margin: 0; flex: 1.3; padding: 12px; font-weight: bold; border-radius: 999px; background: var(--accent); color: var(--bg); border: none;">🧘 Breathing Break</button>
+        <button class="secondary" onclick="dismissPomoModal()" style="margin: 0; flex: 1; padding: 12px; border-radius: 999px;">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Settings Modal -->
+  <div id="accountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="max-width: 420px; width: 100%; padding: 28px 24px; border: 1.5px solid var(--line); display: flex; flex-direction: column; gap: 14px; border-radius: var(--radius); background: rgba(17, 24, 39, 0.98); box-shadow: var(--shadow); text-align: center;">
+      <h2 style="margin: 0; font-size: 22px; color: var(--accent); text-align: center;">Account Settings</h2>
+      <p class="small" style="margin: 0 0 4px 0; color: var(--muted); text-align: center;">Update your username, email, and password.</p>
+      
+      <div style="text-align: left;">
+        <label for="accUser" style="margin: 0 0 4px 0; font-size: 12px;">Username</label>
+        <input id="accUser" type="text" style="width: 100%; padding: 8px 12px; font-size: 13px;" />
+      </div>
+      
+      <div style="text-align: left;">
+        <label for="accEmail" style="margin: 0 0 4px 0; font-size: 12px;">Email</label>
+        <input id="accEmail" type="email" style="width: 100%; padding: 8px 12px; font-size: 13px;" />
+      </div>
+
+      <div style="text-align: left; position: relative;">
+        <label for="accCurrentPass" style="margin: 0 0 4px 0; font-size: 12px;">Current Password (required)</label>
+        <input id="accCurrentPass" type="password" placeholder="Enter current password" style="width: 100%; padding: 8px 12px; font-size: 13px;" />
+      </div>
+
+      <div style="text-align: left;">
+        <label for="accNewPass" style="margin: 0 0 4px 0; font-size: 12px;">New Password (leave blank to keep current)</label>
+        <input id="accNewPass" type="password" placeholder="Enter new password" style="width: 100%; padding: 8px 12px; font-size: 13px;" />
+      </div>
+      
+      <div style="display: flex; gap: 12px; margin-top: 10px;">
+        <button class="primary" onclick="saveAccountSettings()" style="margin: 0; flex: 2; padding: 10px 14px; font-weight: bold; border-radius: 999px;">Save Changes</button>
+        <button class="secondary" onclick="closeAccountModal()" style="margin: 0; flex: 1; padding: 10px 14px; border-radius: 999px;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google / Gmail OAuth Modal -->
+  <div id="googleAuthModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(12px); z-index: 15000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="card" style="max-width: 420px; width: 100%; padding: 28px 24px; border: 1.5px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 16px; border-radius: var(--radius); background: rgba(17, 24, 39, 0.98); box-shadow: 0 0 50px rgba(66, 133, 244, 0.25); text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <svg width="28" height="28" viewBox="0 0 24 24">
+          <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
+          <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+          <path fill="#FBBC05" d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.1-2 .4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"/>
+          <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"/>
+        </svg>
+        <h2 style="margin: 0; font-size: 22px; color: #ffffff;">Sign in with Google</h2>
+      </div>
+      
+      <p class="small" style="margin: 0; color: var(--muted); line-height: 1.4;">Enter your Gmail address to sign in or create your cloud-synced account instantly.</p>
+
+      <div style="text-align: left;">
+        <label for="googleGmailInput" style="margin: 0 0 4px 0; font-size: 12px;">Gmail Address</label>
+        <input id="googleGmailInput" type="email" placeholder="example@gmail.com" style="width: 100%; padding: 10px 14px; font-size: 14px;" onkeydown="if(event.key==='Enter') submitGoogleAuth()" />
+      </div>
+
+      <div style="text-align: left;">
+        <label for="googleNameInput" style="margin: 0 0 4px 0; font-size: 12px;">Display Name (Optional)</label>
+        <input id="googleNameInput" type="text" placeholder="Your Name" style="width: 100%; padding: 10px 14px; font-size: 14px;" onkeydown="if(event.key==='Enter') submitGoogleAuth()" />
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 6px;">
+        <button class="primary" onclick="submitGoogleAuth()" style="margin: 0; flex: 2; padding: 12px; font-weight: bold; background: linear-gradient(135deg, #4285F4, #34A853); color: #fff; border: none; border-radius: 999px;">Continue with Gmail 🚀</button>
+        <button class="secondary" onclick="closeGoogleModal()" style="margin: 0; flex: 1; padding: 12px; border-radius: 999px;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confetti Particle Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+
+
+  <!-- Badge Unlock Celebratory Modal -->
+  <div id="badgeUnlockModal" onclick="dismissBadgeUnlockModal()">
+    <div class="badge-unlock-card" onclick="event.stopPropagation()">
+      <span class="badge-unlock-icon" id="unlockedBadgeIcon">🏆</span>
+      <h2 style="margin: 0 0 8px 0; font-size: 26px; color: var(--accent); letter-spacing: -0.02em;">Badge Unlocked!</h2>
+      <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: var(--text);" id="unlockedBadgeName">Consistency King</h3>
+      <p style="margin: 0 0 24px 0; color: var(--muted); font-size: 14px; line-height: 1.5; text-align: center;" id="unlockedBadgeDesc">You completed a 7-day streak of 80%+ daily goal targets.</p>
+      <button class="primary" onclick="dismissBadgeUnlockModal()" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 999px;">Claim Badge</button>
+    </div>
+  </div>
+
+  <!-- Fullscreen Distraction-Free Lounge Mode Overlay -->
+  <div id="loungeOverlay">
+    <!-- Lounge Top Bar -->
+    <div style="position: absolute; top: 24px; left: 32px; right: 32px; display: flex; justify-content: space-between; align-items: center; z-index: 2;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="logo.jpg" alt="Logo" style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--accent);" />
+        <span style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; color: var(--text);">Focus Lounge</span>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span style="font-size: 13px; color: var(--muted); font-weight: 600;">Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line);">Esc</kbd> to exit</span>
+        <button onclick="toggleLoungeMode()" class="secondary" style="margin: 0; padding: 8px 16px; border-radius: 999px; border-color: rgba(255,255,255,0.2);">Exit Lounge ✕</button>
+      </div>
+    </div>
+
+    <!-- Center Lounge Content -->
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 20px; z-index: 2; max-width: 600px; padding: 20px;">
+      <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: var(--accent); padding: 6px 18px; border-radius: 999px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;" id="loungePomoLabel">WORK SESSION</div>
+
+      <div id="loungePomoTime" style="font-size: 96px; font-weight: 800; font-family: 'Outfit', monospace; letter-spacing: 3px; color: var(--text); text-shadow: 0 0 40px rgba(56, 189, 248, 0.4); line-height: 1;">25:00</div>
+
+      <p id="loungeMotivationQuote" style="color: var(--muted); font-size: 15px; max-width: 450px; line-height: 1.5; margin: 0;">"Deep focus is your superpower. Stay present."</p>
+
+      <!-- Lounge Action Controls -->
+      <div style="display: flex; gap: 16px; align-items: center; margin-top: 10px;">
+        <button id="loungeStartBtn" class="primary" onclick="togglePomo()" style="margin: 0; padding: 14px 40px; font-size: 16px; border-radius: 999px;">Start Focus</button>
+        <button class="secondary" onclick="resetPomo()" style="margin: 0; padding: 14px 24px; font-size: 14px; border-radius: 999px;">Reset</button>
+      </div>
+
+      <!-- Ambient Sound Selector in Lounge -->
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1);">
+        <span style="font-size: 13px; color: var(--muted); font-weight: 600;">🎵 Ambient Track:</span>
+        <select id="loungeAmbientSelect" onchange="syncLoungeAmbient(this.value)" style="background: transparent; border: none; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; outline: none;">
+          <option value="none">None 🔇</option>
+          <option value="rain">Soothing Rain 🌧️</option>
+          <option value="wind">Forest & Birds 🍃</option>
+          <option value="drone">Study Calm 📚</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Dopamine Detox Lockout Overlay -->
+  <div id="detoxLockoutOverlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 25000; background: radial-gradient(circle at center, rgba(15, 10, 26, 0.98) 0%, rgba(5, 3, 10, 0.99) 100%); backdrop-filter: blur(30px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; padding: 24px;">
+    <div style="max-width: 500px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <span style="font-size: 64px; animation: activeGlowPulse 2s infinite alternate;">🛡️</span>
+      <h2 style="font-size: 32px; font-family: 'Outfit', sans-serif; margin: 0; color: #f59e0b; text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);">Dopamine Detox Lockout</h2>
+      <p style="color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0;" id="detoxLockoutQuote">"You are retraining your brain to handle quiet focus. Resisting the urge to check notifications is where real growth happens."</p>
+
+      <div id="detoxLockoutTime" style="font-size: 80px; font-weight: 800; font-family: 'Outfit', monospace; color: #ffffff; text-shadow: 0 0 30px rgba(245, 158, 11, 0.6); margin: 10px 0;">45:00</div>
+
+      <div style="display: flex; gap: 30px; text-align: center;">
+        <div>
+          <div style="font-size: 11px; color: var(--muted); font-weight: 600;">DOOMSCROLL TIME SAVED</div>
+          <div id="detoxLockoutSaved" style="font-size: 24px; font-weight: 800; color: var(--accent-2); margin-top: 4px;">0 mins</div>
+        </div>
+        <div style="border-left: 1px solid var(--line); padding-left: 30px;">
+          <div style="font-size: 11px; color: var(--muted); font-weight: 600;">DETOX RESET POINTS</div>
+          <div id="detoxLockoutPoints" style="font-size: 24px; font-weight: 800; color: #a78bfa; margin-top: 4px;">+0 pts</div>
+        </div>
+      </div>
+
+      <button class="secondary" onclick="toggleDetoxLockout()" style="margin-top: 20px; padding: 12px 30px; border-radius: 999px; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b;">Exit Lockout Mode</button>
     </div>
   </div>
 

@@ -3,6 +3,12 @@
 .idea/
 .vscode/
 
+# Node.js dependencies & SQLite database
+node_modules/
+tracker.db
+
 # Backup and temp files
 *.json
+!package.json
+!package-lock.json
 !daily_tracker_backup_*.json
